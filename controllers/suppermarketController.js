@@ -1,5 +1,5 @@
 import SUP from "../model/supermarketModel.js";
-
+import mongoose from "mongoose";
 export const createSupermarket = async (req, res) => {
   try {
     // Extract necessary fields from the request body
@@ -21,6 +21,11 @@ export const createSupermarket = async (req, res) => {
       !building
     ) {
       return res.status(400).json({ error: "All fields are required" });
+    }
+
+    // Check if the createdBy is valid
+    if (!mongoose.Types.ObjectId.isValid(createdBy)) {
+      return res.status(400).json({ error: "Invalid user ID" });
     }
 
     // Create a new Supermarket instance

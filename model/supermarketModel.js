@@ -11,7 +11,7 @@ const supermarketSchema = new mongoose.Schema({
   whatsappno: { type: String },
   images: [{ type: String }], // Array of image URLs
   reviews: [{ type: mongoose.Schema.Types.ObjectId, ref: "review" }], // Reference to the review model
-  postBy: { type: mongoose.Schema.Types.ObjectId, ref: "user" }, // Reference to the user who created the supermarket
+  createdBy: { type: mongoose.Schema.Types.ObjectId, ref: "user" }, // Reference to the user who created the supermarket
   dateCreated: { type: Date, default: Date.now() },
   verified: { type: Boolean, default: false },
 });

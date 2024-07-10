@@ -16,6 +16,12 @@ import {
   updateSupermarket,
   deleteSupermarket,
 } from "../controllers/suppermarketController.js";
+import {
+  updateUserPhoto,
+  uploadCloudinarySupermarketPictures,
+  uploadSupermarketPictures,
+  updateUserPhotoCloudinary,
+} from "../controllers/uploadController.js";
 
 // user routes
 router.post("/register", registerUser);
@@ -24,6 +30,8 @@ router.put("/update/:id", UpdateProfile);
 router.get("/users", getAllUsers);
 router.get("/user/:id", getOneUserById);
 router.delete("/delete/:id", DeleteUser);
+router.put("/user/updateprofile/:id", updateUserPhotoCloudinary);
+router.put("/user/updatephoto/:id", updateUserPhoto);
 
 // suppermakert route
 // api name can be random anything you want
@@ -32,5 +40,10 @@ router.put("/apiv1/updatesupermarket/:id", updateSupermarket);
 router.get("/apiv1/allsuppermarket", getAllSupermarkets);
 router.get("/apiv1/suppermarket/:id", getOneSupermarketById);
 router.delete("apiv1/suppermarket:id", deleteSupermarket);
+router.put("apiv1/suppermarket/supphotos/:id", uploadSupermarketPictures);
+router.put(
+  "apiv1/suppermarket/supphotoscloud/:id",
+  uploadCloudinarySupermarketPictures
+);
 
 export default router;

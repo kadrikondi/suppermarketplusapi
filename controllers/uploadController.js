@@ -3,10 +3,11 @@
 import multer from "multer";
 import fs from "fs";
 import User from "../model/userModel.js";
+import config from "../config/config.js";
 // cloudinary
 import { v2 as cloudinary } from "cloudinary";
 // import config from "../config/config.js";
-import Supermarket from "../model/supermarket";
+import Supermarket from "../model/supermarketModel.js";
 
 // Multer setup for uploading photos to the "uploads" folder
 const storage = multer.diskStorage({
@@ -46,7 +47,7 @@ const imageFilter = (req, file, cb) => {
 const upload = multer({
   storage: storage,
   fileFilter: imageFilter,
-}).single("image");
+}).single("pic");
 // upload local
 export const updateUserPhoto = async (req, res) => {
   try {
@@ -64,7 +65,7 @@ export const updateUserPhoto = async (req, res) => {
 
       const updatedUser = await User.findByIdAndUpdate(
         req.params.id,
-        { image: userImgUrl },
+        { pic: userImgUrl },
         { new: true }
       );
 
@@ -97,7 +98,9 @@ const storageC = multer.diskStorage({
 const uploadC = multer({
   storage: storageC,
   fileFilter: imageFilter,
-}).single("image");
+}).single("pic");
+
+// supermarketController Upload picture
 
 export const updateUserPhotoCloudinary = async (req, res) => {
   try {
@@ -112,24 +115,32 @@ export const updateUserPhotoCloudinary = async (req, res) => {
       }
 
       cloudinary.config({
-        cloud_name: config.cloud_name,
-        api_key: config.api_key,
-        api_secret: config.api_secret,
+        cloud_name: process.env.CLOUD_NAME,
+        api_key: process.env.API_KEY,
+        api_secret: process.env.API_SECRET,
       });
-      console.log("ggogooogooooooogo" + config.cloud_name, config.api_key);
-      const result = await cloudinary.uploader.upload(req.file.path);
-      const userImgUrl = result.secure_url;
 
-      const updatedUser = await User.findByIdAndUpdate(
-        req.params.id,
-        { image: userImgUrl },
-        { new: true }
-      );
+      try {
+        const result = await cloudinary.uploader.upload(req.file.path);
+        const userImgUrl = result.secure_url;
 
-      return res.status(201).json({
-        message: "Profile photo updated",
-        user: updatedUser,
-      });
+        const updatedUser = await User.findByIdAndUpdate(
+          req.params.id,
+          { pic: userImgUrl },
+          { new: true }
+        );
+
+        return res.status(201).json({
+          message: "Profile photo updated",
+          user: updatedUser,
+        });
+      } catch (uploadError) {
+        console.error("Error uploading to Cloudinary:", uploadError);
+        return res.status(500).json({
+          code: "CLOUDINARY_ERROR",
+          message: "Error uploading to Cloudinary",
+        });
+      }
     });
   } catch (error) {
     console.error("Update user profile photo error:", error.message);
@@ -139,8 +150,6 @@ export const updateUserPhotoCloudinary = async (req, res) => {
     });
   }
 };
-
-// supermarketController Upload picture
 
 // Multer setup for uploading supermarket pictures
 const storageSup = multer.diskStorage({
@@ -237,6 +246,75 @@ export const uploadSupermarketPictures = async (req, res) => {
         message: "Supermarket pictures uploaded successfully",
         supermarket: updatedSupermarket,
         images: supermarketImgUrls,
+      });
+    });
+  } catch (error) {
+    console.error("Error uploading supermarket pictures:", error.message);
+    return res.status(500).json({
+      code: "SERVER_ERROR",
+      message: "Something went wrong, please try again",
+    });
+  }
+};
+
+export const uploadCloudinarySupermarketPictures = async (req, res) => {
+  try {
+    uploadSup(req, res, async (err) => {
+      if (err instanceof multer.MulterError) {
+        // Multer error occurred
+        console.error("Multer error:", err);
+        return res
+          .status(400)
+          .json({ message: "Multer error occurred", error: err });
+      } else if (err) {
+        // Other error occurred
+        console.error("Error uploading pictures:", err);
+        return res
+          .status(400)
+          .json({ message: "Error uploading pictures", error: err });
+      }
+
+      if (!req.files || req.files.length === 0) {
+        return res.status(403).json({ message: "No files selected" });
+      }
+
+      // Fetch user and supermarket based on IDs
+      const user = await User.findById(req.params.userId);
+      const supermarket = await Supermarket.findById(req.params.supermarketId);
+
+      // Check if user and supermarket exist
+      if (!user || !supermarket) {
+        return res
+          .status(404)
+          .json({ message: "User or supermarket not found" });
+      }
+
+      // Check if the user created the supermarket
+      if (supermarket.createdBy.toString() !== req.params.userId) {
+        return res.status(403).json({ message: "Unauthorized" });
+      }
+
+      const uploadedImages = [];
+      for (const file of req.files) {
+        const result = await cloudinary.uploader.upload_stream(file.buffer);
+        uploadedImages.push(result.secure_url);
+      }
+
+      // Check if the user is trying to upload more than 5 pictures
+      if (supermarket.images.length + uploadedImages.length > 5) {
+        return res
+          .status(400)
+          .json({ message: "Cannot upload more than 5 photos" });
+      }
+
+      // Update supermarket photos with Cloudinary URLs
+      supermarket.images.push(...uploadedImages);
+      await supermarket.save();
+
+      return res.status(201).json({
+        message: "Supermarket pictures uploaded successfully",
+        supermarket,
+        images: uploadedImages,
       });
     });
   } catch (error) {

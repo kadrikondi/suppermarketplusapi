@@ -1,6 +1,7 @@
 import express from "express";
 import mongoose from "mongoose";
 import router from "./route/route.js";
+import config from "./config/config.js";
 
 const app = express();
 
@@ -10,7 +11,7 @@ app.use(express.urlencoded({ extended: false }));
 
 app.use("/", router);
 
-const port = process.env.PORT || 9000;
+const port = config.port || process.env.PORT || 9000;
 
 app.get("*", (req, res) => {
   res.send("<h2> Page not found</h2>");
