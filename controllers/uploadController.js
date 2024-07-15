@@ -9,6 +9,8 @@ import { v2 as cloudinary } from "cloudinary";
 // import config from "../config/config.js";
 import Supermarket from "../model/supermarketModel.js";
 
+// user upload to local
+
 // Multer setup for uploading photos to the "uploads" folder
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
@@ -100,7 +102,7 @@ const uploadC = multer({
   fileFilter: imageFilter,
 }).single("pic");
 
-// supermarketController Upload picture
+//  user upload to cloudinary Controller Upload picture
 
 export const updateUserPhotoCloudinary = async (req, res) => {
   try {
@@ -151,6 +153,8 @@ export const updateUserPhotoCloudinary = async (req, res) => {
   }
 };
 
+// supermarketController.js
+// upload to suppermarket picture local folder
 // Multer setup for uploading supermarket pictures
 const storageSup = multer.diskStorage({
   destination: (req, file, cb) => {
@@ -257,12 +261,29 @@ export const uploadSupermarketPictures = async (req, res) => {
   }
 };
 
-// const storage = multer.memoryStorage();
-// const uploadSup = multer({ storage }).array("images");
+// supper maekrt picture
+//upload to cloudinary
+
+const storageSupC = multer.memoryStorage();
+
+const imageFilterSupC = (req, file, cb) => {
+  if (!file.originalname.match(/\.(jpeg|jpg|png)$/i)) {
+    return cb("Only image files are allowed", false);
+  }
+  cb(null, true);
+};
+
+// Multer middleware for limiting uploads to 5 pictures
+const uploadSupC = multer({
+  storage: storageSupC,
+  fileFilter: imageFilterSupC,
+  limits: { fileSize: 5 * 1024 * 1024 }, // 5 MB file size limit
+  array: 5, // Limit to 5 files
+}).array("images", 5); // Field name for multiple files and maximum number of fi
 
 export const uploadCloudinarySupermarketPictures = async (req, res) => {
   try {
-    uploadSup(req, res, async (err) => {
+    uploadSupC(req, res, async (err) => {
       if (err instanceof multer.MulterError) {
         console.error("Multer error:", err);
         return res
@@ -292,37 +313,42 @@ export const uploadCloudinarySupermarketPictures = async (req, res) => {
         return res.status(403).json({ message: "Unauthorized" });
       }
 
-      cloudinary.config({
-        cloud_name: process.env.CLOUD_NAME,
-        api_key: process.env.API_KEY,
-        api_secret: process.env.API_SECRET,
-      });
+      const totalImagesAfterUpload = req.files.length;
+      if (totalImagesAfterUpload > 5) {
+        return res
+          .status(400)
+          .json({ message: "Cannot upload more than 5 photos" });
+      }
 
+      // const totalImagesAfterUpload =
+      //   supermarket.images.length + req.files.length;
+      // if (totalImagesAfterUpload > 5) {
+      //   return res
+      //     .status(400)
+      //     .json({ message: "Cannot upload more than 5 photos" });
+      // }
+      cloudinary.config({
+        cloud_name: config.cloud_name || process.env.CLOUD_NAME,
+        api_key: config.api_key || process.env.API_KEY,
+        api_secret: config.api_secret || process.env.API_SECRET,
+      });
       const uploadedImages = [];
       const uploadPromises = req.files.map((file) => {
         return new Promise((resolve, reject) => {
-          const uploadStream = cloudinary.uploader.upload_stream(
-            (error, result) => {
-              if (error) {
-                reject(error);
-              } else {
-                resolve(result.secure_url);
-              }
+          const stream = cloudinary.uploader.upload_stream((error, result) => {
+            if (error) {
+              reject(error);
+            } else {
+              resolve(result.secure_url);
             }
-          );
-          uploadStream.end(file.buffer);
+          });
+          stream.end(file.buffer);
         });
       });
 
       try {
         const imageUrls = await Promise.all(uploadPromises);
         uploadedImages.push(...imageUrls);
-
-        if (supermarket.images.length + uploadedImages.length > 5) {
-          return res
-            .status(400)
-            .json({ message: "Cannot upload more than 5 photos" });
-        }
 
         supermarket.images.push(...uploadedImages);
         await supermarket.save();
@@ -351,15 +377,13 @@ export const uploadCloudinarySupermarketPictures = async (req, res) => {
 
 // export const uploadCloudinarySupermarketPictures = async (req, res) => {
 //   try {
-//     uploadSup(req, res, async (err) => {
+//     uploadSupC(req, res, async (err) => {
 //       if (err instanceof multer.MulterError) {
-//         // Multer error occurred
 //         console.error("Multer error:", err);
 //         return res
 //           .status(400)
 //           .json({ message: "Multer error occurred", error: err });
 //       } else if (err) {
-//         // Other error occurred
 //         console.error("Error uploading pictures:", err);
 //         return res
 //           .status(400)
@@ -370,51 +394,64 @@ export const uploadCloudinarySupermarketPictures = async (req, res) => {
 //         return res.status(403).json({ message: "No files selected" });
 //       }
 
-//       // Fetch user and supermarket based on IDs
 //       const user = await User.findById(req.params.userId);
 //       const supermarket = await Supermarket.findById(req.params.supermarketId);
 
-//       // Check if user and supermarket exist
 //       if (!user || !supermarket) {
 //         return res
 //           .status(404)
 //           .json({ message: "User or supermarket not found" });
 //       }
 
-//       // Check if the user created the supermarket
 //       if (supermarket.createdBy.toString() !== req.params.userId) {
 //         return res.status(403).json({ message: "Unauthorized" });
 //       }
 
 //       cloudinary.config({
-//         cloud_name: process.env.CLOUD_NAME,
-//         api_key: process.env.API_KEY,
-//         api_secret: process.env.API_SECRET,
+//         cloud_name: config.cloud_name || process.env.CLOUD_NAME,
+//         api_key: config.api_key || process.env.API_KEY,
+//         api_secret: config.api_secret || process.env.API_SECRET,
 //       });
-//       // Upload images to Cloudinary
+
 //       const uploadedImages = [];
-//       for (const file of req.files) {
-//         const result = await cloudinary.uploader.upload_stream(file.buffer);
-//         uploadedImages.push(result.secure_url);
-//       }
-
-//       // Check if the user is trying to upload more than 5 pictures
-//       if (supermarket.images.length + uploadedImages.length > 5) {
-//         return res
-//           .status(400)
-//           .json({ message: "Cannot upload more than 5 photos" });
-//       }
-
-//       // Update supermarket photos with Cloudinary URLs
-//       let updatephtourl = supermarket.images.push(...uploadedImages);
-//       await supermarket.save();
-
-//       return res.status(201).json({
-//         message: "Supermarket pictures uploaded successfully",
-//         supermarket,
-//         images: uploadedImages,
-//         updatephtourl,
+//       const uploadPromises = req.files.map((file) => {
+//         return new Promise((resolve, reject) => {
+//           const stream = cloudinary.uploader.upload_stream((error, result) => {
+//             if (error) {
+//               reject(error);
+//             } else {
+//               resolve(result.secure_url);
+//             }
+//           });
+//           stream.end(file.buffer);
+//         });
 //       });
+
+//       try {
+//         const imageUrls = await Promise.all(uploadPromises);
+//         uploadedImages.push(...imageUrls);
+
+//         if (supermarket.images.length + uploadedImages.length > 5) {
+//           return res
+//             .status(400)
+//             .json({ message: "Cannot upload more than 5 photos" });
+//         }
+
+//         supermarket.images.push(...uploadedImages);
+//         await supermarket.save();
+
+//         return res.status(201).json({
+//           message: "Supermarket pictures uploaded successfully",
+//           supermarket,
+//           images: uploadedImages,
+//         });
+//       } catch (uploadError) {
+//         console.error("Error uploading to Cloudinary:", uploadError);
+//         return res.status(500).json({
+//           message: "Error uploading to Cloudinary",
+//           error: uploadError,
+//         });
+//       }
 //     });
 //   } catch (error) {
 //     console.error("Error uploading supermarket pictures:", error.message);
