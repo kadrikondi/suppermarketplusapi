@@ -39,10 +39,13 @@ router.post("/apiv1/registersupermarket/:id", createSupermarket);
 router.put("/apiv1/updatesupermarket/:id", updateSupermarket);
 router.get("/apiv1/allsuppermarket", getAllSupermarkets);
 router.get("/apiv1/suppermarket/:id", getOneSupermarketById);
-router.delete("apiv1/suppermarket:id", deleteSupermarket);
-router.put("apiv1/suppermarket/supphotos/:id", uploadSupermarketPictures);
+router.delete("/apiv1/suppermarket:id", deleteSupermarket);
 router.put(
-  "apiv1/suppermarket/supphotoscloud/:id",
+  "/apiv1/suppermarket/:userId/:supermarketId",
+  uploadSupermarketPictures
+);
+router.put(
+  "/apiv1/suppermarket/supphotoscloud/:userId/:supermarketId",
   uploadCloudinarySupermarketPictures
 );
 
