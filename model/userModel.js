@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 
 const userSchema = new mongoose.Schema({
-  name: { type: String, required: true },
+  name: { type: String },
   username: { type: String, required: true, unique: true },
   email: { type: String, required: true, unique: true },
   password: { type: String, required: true },
@@ -13,7 +13,7 @@ const userSchema = new mongoose.Schema({
   phoneno: { type: String },
   address: { type: String },
   createAt: { type: Date, default: Date.now },
-  gender: { type: String, required: true },
+  gender: { type: String },
   isAdmin: { type: Boolean, default: false },
 });
 

@@ -2,10 +2,24 @@ import express from "express";
 import mongoose from "mongoose";
 import router from "./route/route.js";
 import config from "./config/config.js";
+import cors from "cors";
 
 const app = express();
 
+app.use((req, res, next) => {
+  res.header("Access-Control-Allow-Origin", "*");
+  res.header(
+    "Access-Control-Allow-Headers",
+    "Origin, X-Requested-With, Content-Type, Accept"
+  );
+  res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+  next();
+});
+
+app.use(cors());
+
 // parse application/x-www-form-urlencoded   middleware
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 

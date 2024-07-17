@@ -3,8 +3,17 @@ import mongoose from "mongoose";
 export const createSupermarket = async (req, res) => {
   try {
     // Extract necessary fields from the request body
-    const { name, phone, email, street, city, state, whatsappno, building } =
-      req.body;
+    const {
+      name,
+      phone,
+      email,
+      street,
+      city,
+      state,
+      whatsappno,
+      building,
+      description,
+    } = req.body;
 
     // Get createdBy from request params
     const createdBy = req.params.id;
@@ -18,7 +27,8 @@ export const createSupermarket = async (req, res) => {
       !city ||
       !state ||
       !whatsappno ||
-      !building
+      !building ||
+      !description
     ) {
       return res.status(400).json({ error: "All fields are required" });
     }
@@ -38,6 +48,7 @@ export const createSupermarket = async (req, res) => {
       state,
       building,
       whatsappno,
+      description,
       createdBy,
     });
 

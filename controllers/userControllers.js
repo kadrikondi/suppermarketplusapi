@@ -6,17 +6,9 @@ import config from "../config/config.js";
 // register user
 export const registerUser = async (req, res) => {
   try {
-    const { name, username, email, password, gender, confirmpassword } =
-      req.body;
+    const { username, email, password, confirmpassword } = req.body;
 
-    if (
-      !name ||
-      !username ||
-      !email ||
-      !gender ||
-      !password ||
-      !confirmpassword
-    ) {
+    if (!username || !email || !password || !confirmpassword) {
       return res.status(400).json({ message: "All fields are required" });
     }
 
@@ -52,11 +44,9 @@ export const registerUser = async (req, res) => {
     // res.status(201).json({ message: "User created successfully" });
 
     const newUser = await User.create({
-      name,
       username,
       email,
       password: hashespassword,
-      gender,
     });
 
     return res.status(200).json({
@@ -114,7 +104,6 @@ export const LoginUser = async (req, res) => {
         id: user._id,
         username: user.username,
         email: user.email,
-        gender: user.gender,
       },
     });
   } catch (error) {

@@ -8,6 +8,7 @@ const supermarketSchema = new mongoose.Schema({
   city: { type: String },
   building: { type: String },
   state: { type: String },
+  description: { type: String },
   whatsappno: { type: String },
   images: [{ type: String }], // Array of image URLs
   reviews: [{ type: mongoose.Schema.Types.ObjectId, ref: "review" }], // Reference to the review model
