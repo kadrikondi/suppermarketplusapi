@@ -23,6 +23,9 @@ import {
   updateUserPhotoCloudinary,
 } from "../controllers/uploadController.js";
 
+import {createContact} from '../controllers/contactcontroller.js'
+
+
 // user routes
 router.post("/register", registerUser);
 router.post("/login", LoginUser);
@@ -48,5 +51,8 @@ router.put(
   "/apiv1/suppermarket/supphotoscloud/:userId/:supermarketId",
   uploadCloudinarySupermarketPictures
 );
+
+// contact us route
+router.post("/contactus/:id", createContact);
 
 export default router;
