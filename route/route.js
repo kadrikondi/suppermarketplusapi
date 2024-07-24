@@ -23,8 +23,7 @@ import {
   updateUserPhotoCloudinary,
 } from "../controllers/uploadController.js";
 
-import {createContact} from '../controllers/contactcontroller.js'
-
+import { createContact } from "../controllers/contactcontroller.js";
 
 // user routes
 router.post("/register", registerUser);
@@ -42,7 +41,7 @@ router.post("/apiv1/registersupermarket/:id", createSupermarket);
 router.put("/apiv1/updatesupermarket/:id", updateSupermarket);
 router.get("/apiv1/allsuppermarket", getAllSupermarkets);
 router.get("/apiv1/suppermarket/:id", getOneSupermarketById);
-router.delete("/apiv1/suppermarket:id", deleteSupermarket);
+router.delete("/apiv1/suppermarket/:id", deleteSupermarket);
 router.put(
   "/apiv1/suppermarket/:userId/:supermarketId",
   uploadSupermarketPictures

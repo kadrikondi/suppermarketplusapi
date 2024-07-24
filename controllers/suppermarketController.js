@@ -56,7 +56,7 @@ export const createSupermarket = async (req, res) => {
     const savedSupermarket = await newSupermarket.save();
 
     // Respond with the saved supermarket data
-    res.status(201).json({ messsage: "successs", super: savedSupermarket });
+    res.status(201).json({ message: "successs", store: savedSupermarket });
   } catch (error) {
     // Handle errors
     console.error("Error creating supermarket:", error);

@@ -115,13 +115,11 @@ export const updateUserPhotoCloudinary = async (req, res) => {
       if (!req.file) {
         return res.status(403).json({ message: "No file selected" });
       }
-
       cloudinary.config({
-        cloud_name: process.env.CLOUD_NAME,
-        api_key: process.env.API_KEY,
-        api_secret: process.env.API_SECRET,
+        cloud_name: config.cloud_name || process.env.CLOUD_NAME,
+        api_key: config.api_key || process.env.API_KEY,
+        api_secret: config.api_secret || process.env.API_SECRET,
       });
-
       try {
         const result = await cloudinary.uploader.upload(req.file.path);
         const userImgUrl = result.secure_url;
